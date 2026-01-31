@@ -1,2 +1,1 @@
-export { default } from "@leetcode-insights/ui/postcss.config";
-
+export { default } from '@leetcode-insights/ui/postcss.config';
