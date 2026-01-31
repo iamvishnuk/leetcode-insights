@@ -11,10 +11,10 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@workspace/ui/components",
-    "utils": "@workspace/ui/lib/utils",
-    "hooks": "@workspace/ui/hooks",
-    "lib": "@workspace/ui/lib",
-    "ui": "@workspace/ui/components"
+    "components": "@leetcode-insights/ui/components",
+    "utils": "@leetcode-insights/ui/lib/utils",
+    "hooks": "@leetcode-insights/ui/hooks",
+    "lib": "@leetcode-insights/ui/lib",
+    "ui": "@leetcode-insights/ui/components"
   }
 }
