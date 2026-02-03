@@ -85,11 +85,11 @@ print(data)
             samples={[
               {
                 code: `{
-    "username": "username",
-    "realName": "real name",
+    "username": "john_doe",
+    "realName": "John Doe",
     "aboutMe": "",
     "avatar": "https://...",
-    "location": "location",
+    "location": "terminal",
     "company": null,
     "school": null,
     "websites": [...],

@@ -45,6 +45,7 @@ type CodeBlockProps = {
   onCopy?: (code: string) => void;
   maxHeight?: string;
   onLanguageChange?: (language: Language) => void;
+  showHeader?: boolean;
 };
 
 const CodeBlock = ({
@@ -58,7 +59,8 @@ const CodeBlock = ({
   className,
   onCopy,
   maxHeight,
-  onLanguageChange
+  onLanguageChange,
+  showHeader = true
 }: CodeBlockProps) => {
   const { theme } = useTheme();
   const [isCopied, setIsCopied] = useState(false);
@@ -89,46 +91,48 @@ const CodeBlock = ({
 
   return (
     <Card className={cn('gap-0 rounded-md p-0')}>
-      <CardHeader className='flex w-full items-center justify-between py-2'>
-        {title && (
-          <span className='text-muted-foreground text-sm font-medium'>
-            {title}
-          </span>
-        )}
-        <div className='flex items-center gap-2'>
-          {samples.length > 1 && (
-            <select
-              value={selectedLanguage}
-              onChange={handleLanguageChange}
-              className='rounded-md p-2 text-sm transition-colors duration-200 hover:cursor-pointer hover:bg-gray-100 dark:hover:bg-neutral-900'
-            >
-              {samples.map((sample) => (
-                <option
-                  key={sample.language}
-                  value={sample.language}
-                >
-                  {sample.label}
-                </option>
-              ))}
-            </select>
+      {showHeader && (
+        <CardHeader className='flex w-full items-center justify-between py-2'>
+          {title && (
+            <span className='text-muted-foreground text-sm font-medium'>
+              {title}
+            </span>
           )}
-          {showCopyButton && (
-            <Button
-              className='cursor-pointer'
-              variant='ghost'
-              size='icon'
-              onClick={handleCopy}
-              aria-label={isCopied ? 'Copied' : 'Copy code'}
-            >
-              {isCopied ? (
-                <Check className='h-4 w-4' />
-              ) : (
-                <Copy className='h-4 w-4' />
-              )}
-            </Button>
-          )}
-        </div>
-      </CardHeader>
+          <div className='flex items-center gap-2'>
+            {samples.length > 1 && (
+              <select
+                value={selectedLanguage}
+                onChange={handleLanguageChange}
+                className='rounded-md p-2 text-sm transition-colors duration-200 hover:cursor-pointer hover:bg-gray-100 dark:hover:bg-neutral-900'
+              >
+                {samples.map((sample) => (
+                  <option
+                    key={sample.language}
+                    value={sample.language}
+                  >
+                    {sample.label}
+                  </option>
+                ))}
+              </select>
+            )}
+            {showCopyButton && (
+              <Button
+                className='cursor-pointer'
+                variant='ghost'
+                size='icon'
+                onClick={handleCopy}
+                aria-label={isCopied ? 'Copied' : 'Copy code'}
+              >
+                {isCopied ? (
+                  <Check className='h-4 w-4' />
+                ) : (
+                  <Copy className='h-4 w-4' />
+                )}
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+      )}
       <CardContent className='p-0'>
         <Highlight
           theme={theme === 'dark' ? darkTheme : lightTheme}

@@ -23,13 +23,44 @@ const Sidebar = () => {
       href: '/docs/getting-started'
     },
     {
-      id: 'components',
-      title: 'Components',
+      id: 'api-reference',
+      title: 'API Reference',
       children: [
-        { id: 'button', title: 'Button', href: '#button' },
-        { id: 'card', title: 'Card', href: '#card' },
-        { id: 'modal', title: 'Modal', href: '#modal' },
-        { id: 'dropdown', title: 'Dropdown', href: '#dropdown' }
+        {
+          id: 'profile',
+          title: 'Profile',
+          href: '/docs/api/profile'
+        },
+        {
+          id: 'profile-overview',
+          title: 'Profile Overview',
+          href: '/docs/api/overview'
+        },
+        {
+          id: 'calendar',
+          title: 'Calendar',
+          href: '/docs/api/calendar'
+        },
+        {
+          id: 'stats',
+          title: 'Stats',
+          href: '/docs/api/stats'
+        },
+        {
+          id: 'badges',
+          title: 'Badges',
+          href: '/docs/api/badges'
+        },
+        {
+          id: 'skills',
+          title: 'Skills',
+          href: '/docs/api/skills'
+        },
+        {
+          id: 'contest',
+          title: 'Contest',
+          href: '/docs/api/contest'
+        }
       ]
     }
   ];
@@ -81,7 +112,12 @@ const Sidebar = () => {
                         <li key={child.id}>
                           <Link
                             href={child.href}
-                            className='block px-3 py-2 text-sm transition-colors hover:text-orange-500 dark:text-gray-400 dark:hover:text-orange-500'
+                            className={cn(
+                              'block px-3 py-2 text-sm transition-colors hover:text-orange-500 dark:hover:text-orange-500',
+                              path === child.href
+                                ? 'text-orange-500 dark:text-orange-500'
+                                : 'dark:text-gray-400'
+                            )}
                           >
                             {child.title}
                           </Link>
