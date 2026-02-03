@@ -18,13 +18,16 @@ const MENU_ITEMS = [
   }
 ];
 
-const HomeHeader = () => {
+const Header = () => {
   const path = usePathname();
   return (
-    <header className='fixed inset-x-0 top-0 z-10 h-16 w-full bg-white dark:bg-neutral-950'>
+    <header className='fixed inset-x-0 top-0 z-10 h-16 w-full border-b bg-white dark:bg-neutral-950'>
       <div className='mx-auto h-full max-w-6xl'>
         <div className='flex h-full items-center justify-between'>
-          <div className='flex items-baseline gap-2'>
+          <Link
+            href='/'
+            className='flex items-baseline gap-2'
+          >
             <svg
               width='17'
               height='20'
@@ -49,7 +52,7 @@ const HomeHeader = () => {
               LeetCode&nbsp;
               <span className='text-orange-500'>Insights</span>
             </div>
-          </div>
+          </Link>
           <div className='flex items-center gap-4'>
             <nav>
               <ul className='flex items-center gap-4'>
@@ -59,7 +62,8 @@ const HomeHeader = () => {
                       href={item.href}
                       className={cn(
                         'font-medium transition-colors duration-200 hover:text-orange-500 dark:text-gray-400 dark:hover:text-orange-500',
-                        path === item.href &&
+                        (path === item.href ||
+                          path.startsWith(item.href + '/')) &&
                           'text-orange-500 dark:text-orange-500'
                       )}
                     >
@@ -112,4 +116,4 @@ const HomeHeader = () => {
   );
 };
 
-export default HomeHeader;
+export default Header;

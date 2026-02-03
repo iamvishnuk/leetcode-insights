@@ -3,7 +3,7 @@ import Hero from '@/components/home/hero';
 
 export default function Page() {
   return (
-    <div className='mx-auto max-w-6xl pt-16'>
+    <div className=''>
       <Hero />
       <Features />
     </div>
