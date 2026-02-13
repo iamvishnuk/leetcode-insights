@@ -15,6 +15,10 @@ const MENU_ITEMS = [
   {
     label: 'Docs',
     href: '/docs'
+  },
+  {
+    label: 'Explorer',
+    href: '/explorer'
   }
 ];
 

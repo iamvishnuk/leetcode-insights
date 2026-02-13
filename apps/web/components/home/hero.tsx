@@ -23,7 +23,7 @@ const Hero = () => {
 
           <Button
             asChild
-            className='w-fit rounded-full bg-orange-500 px-5! py-4! text-white transition-colors duration-200 dark:bg-orange-500 dark:hover:bg-orange-500/90'
+            className='w-fit rounded-full bg-orange-500 px-5! py-4! text-white transition-colors duration-200 hover:bg-orange-500/90'
           >
             <Link href='/docs'>
               Get Started <ChevronRight />
