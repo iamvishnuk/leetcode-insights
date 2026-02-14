@@ -26,6 +26,7 @@ pnpm-lock.yaml
 yarn.lock
 package-lock.json
 bun.lockb
+bun.lock
 
 # Environment variables
 .env
