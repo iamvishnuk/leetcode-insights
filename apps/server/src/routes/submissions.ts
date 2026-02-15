@@ -1,4 +1,4 @@
-import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
+import { OpenAPIHono, createRoute } from '@hono/zod-openapi';
 import { fetchLeetcode } from '../lib/leetcode';
 import { USER_RECENT_SUBMISSIONS_QUERY } from '../lib/queries';
 import { ErrorSchema, UsernameParamSchema } from '../schemas/common';
@@ -6,6 +6,8 @@ import {
   RecentSubmissionsResponseSchema,
   LimitQuerySchema
 } from '../schemas/submissions';
+
+const count = 100;
 
 interface RecentSubmissionsResponse {
   recentAcSubmissionList: {

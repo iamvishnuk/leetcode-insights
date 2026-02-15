@@ -1,4 +1,4 @@
-import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
+import { OpenAPIHono, createRoute } from '@hono/zod-openapi';
 import { fetchLeetcode } from '../lib/leetcode';
 import { USER_SKILLS_QUERY, USER_LANGUAGE_STATS_QUERY } from '../lib/queries';
 import { ErrorSchema, UsernameParamSchema } from '../schemas/common';
