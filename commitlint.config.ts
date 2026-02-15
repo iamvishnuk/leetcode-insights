@@ -18,7 +18,8 @@ const config: UserConfig = {
       ]
     ],
     'scope-empty': [1, 'never'],
-    'header-max-length': [2, 'always', 150]
+    'header-max-length': [2, 'always', 150],
+    'subject-case': [0]
   }
 };
 
