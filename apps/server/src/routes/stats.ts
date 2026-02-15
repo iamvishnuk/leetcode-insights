@@ -1,6 +1,11 @@
-import { Hono } from 'hono';
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { fetchLeetcode } from '../lib/leetcode';
 import { USER_STATS_QUERY, USER_SUBMISSION_STATS_QUERY } from '../lib/queries';
+import { ErrorSchema, UsernameParamSchema } from '../schemas/common';
+import {
+  StatsResponseSchema,
+  SubmissionStatsResponseSchema
+} from '../schemas/stats';
 
 interface StatsResponse {
   allQuestionsCount: {
@@ -39,14 +44,55 @@ interface SubmissionStatsResponse {
   };
 }
 
-const stats = new Hono();
+const stats = new OpenAPIHono();
 
-/**
- * GET /:username
- * Get user's problem-solving statistics with beats percentage
- */
-stats.get('/:username', async (c) => {
-  const username = c.req.param('username');
+const statsRoute = createRoute({
+  method: 'get',
+  path: '/{username}',
+  tags: ['Stats'],
+  summary: 'Get user stats',
+  description: "Get user's problem-solving statistics with beats percentage",
+  request: {
+    params: UsernameParamSchema
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: StatsResponseSchema
+        }
+      },
+      description: 'User statistics'
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Bad Request'
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'User not found'
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Server Error'
+    }
+  }
+});
+
+stats.openapi(statsRoute, async (c) => {
+  const { username } = c.req.valid('param');
 
   if (!username) {
     return c.json({ error: 'Username is required' }, 400);
@@ -102,7 +148,7 @@ stats.get('/:username', async (c) => {
         ? ((totalSolved / totalSubmissions) * 100).toFixed(2)
         : '0.00';
 
-    return c.json({
+    const result = {
       username,
       totalQuestions: totalQuestions['all'] ?? 0,
       totalSolved,
@@ -125,19 +171,62 @@ stats.get('/:username', async (c) => {
           beats: beats['hard'] ?? 0
         }
       }
-    });
+    };
+
+    return c.json(result, 200);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return c.json({ error: message }, 500);
   }
 });
 
-/**
- * GET /:username/submissions
- * Get detailed submission statistics
- */
-stats.get('/:username/submissions', async (c) => {
-  const username = c.req.param('username');
+const submissionStatsRoute = createRoute({
+  method: 'get',
+  path: '/{username}/submissions',
+  tags: ['Stats'],
+  summary: 'Get submission stats',
+  description: 'Get detailed submission statistics',
+  request: {
+    params: UsernameParamSchema
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: SubmissionStatsResponseSchema
+        }
+      },
+      description: 'User submission statistics'
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Bad Request'
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'User not found'
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Server Error'
+    }
+  }
+});
+
+stats.openapi(submissionStatsRoute, async (c) => {
+  const { username } = c.req.valid('param');
 
   if (!username) {
     return c.json({ error: 'Username is required' }, 400);
@@ -188,7 +277,7 @@ stats.get('/:username/submissions', async (c) => {
       (item) => item.difficulty.toLowerCase() === 'all'
     );
 
-    return c.json({
+    const match = {
       username,
       overall: {
         accepted: overallAc?.submissions ?? 0,
@@ -205,7 +294,8 @@ stats.get('/:username/submissions', async (c) => {
             : 0
       },
       byDifficulty: result
-    });
+    };
+    return c.json(match, 200);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return c.json({ error: message }, 500);

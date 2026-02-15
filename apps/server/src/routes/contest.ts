@@ -1,6 +1,8 @@
-import { Hono } from 'hono';
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { fetchLeetcode } from '../lib/leetcode';
 import { USER_CONTEST_RANKING_QUERY } from '../lib/queries';
+import { ErrorSchema, UsernameParamSchema } from '../schemas/common';
+import { ContestResponseSchema } from '../schemas/contest';
 
 interface ContestRankingResponse {
   userContestRanking: {
@@ -28,14 +30,47 @@ interface ContestRankingResponse {
   }[];
 }
 
-const contest = new Hono();
+const contest = new OpenAPIHono();
 
-/**
- * GET /:username
- * Get user's contest ranking and history
- */
-contest.get('/:username', async (c) => {
-  const username = c.req.param('username');
+const route = createRoute({
+  method: 'get',
+  path: '/{username}',
+  tags: ['Contest'],
+  summary: 'Get contest ranking',
+  description: "Get user's contest ranking and history",
+  request: {
+    params: UsernameParamSchema
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: ContestResponseSchema
+        }
+      },
+      description: 'Contest ranking and history'
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Bad Request'
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Server Error'
+    }
+  }
+});
+
+contest.openapi(route, async (c) => {
+  const { username } = c.req.valid('param');
 
   if (!username) {
     return c.json({ error: 'Username is required' }, 400);
@@ -51,11 +86,14 @@ contest.get('/:username', async (c) => {
 
     // User might not have participated in contests
     if (!userContestRanking) {
-      return c.json({
-        username,
-        hasContestData: false,
-        message: 'User has not participated in any contests'
-      });
+      return c.json(
+        {
+          username,
+          hasContestData: false,
+          message: 'User has not participated in any contests'
+        },
+        200
+      );
     }
 
     // Filter only attended contests
@@ -65,14 +103,9 @@ contest.get('/:username', async (c) => {
 
     // Calculate stats from history
     const ratingHistory = attendedContests.map((contest) => ({
-      contestName: contest.contest.title,
+      name: contest.contest.title,
       rating: Math.round(contest.rating),
-      ranking: contest.ranking,
-      problemsSolved: contest.problemsSolved,
-      totalProblems: contest.totalProblems,
-      date: new Date(contest.contest.startTime * 1000).toISOString(),
-      finishTimeMinutes: Math.round(contest.finishTimeInSeconds / 60),
-      trend: contest.trendDirection
+      date: new Date(contest.contest.startTime * 1000).toISOString()
     }));
 
     // Best and worst performances
@@ -91,31 +124,38 @@ contest.get('/:username', async (c) => {
           ).toFixed(2)
         : 0;
 
-    return c.json({
-      username,
-      hasContestData: true,
-      ranking: {
-        current: userContestRanking.globalRanking,
-        rating: Math.round(userContestRanking.rating),
-        topPercentage: parseFloat(userContestRanking.topPercentage.toFixed(2)),
-        totalParticipants: userContestRanking.totalParticipants,
-        attendedCount: userContestRanking.attendedContestsCount,
-        badge: userContestRanking.badge?.name ?? null
+    return c.json(
+      {
+        username,
+        hasContestData: true,
+        ranking: {
+          current: userContestRanking.globalRanking,
+          rating: Math.round(userContestRanking.rating),
+          topPercentage: parseFloat(
+            userContestRanking.topPercentage.toFixed(2)
+          ),
+          totalParticipants: userContestRanking.totalParticipants,
+          attendedCount: userContestRanking.attendedContestsCount,
+          badge: userContestRanking.badge?.name ?? null
+        },
+        stats: {
+          averageProblemsPerContest: parseFloat(
+            avgProblemsPerContest.toString()
+          ),
+          bestRating: sortedByRating[0]
+            ? Math.round(sortedByRating[0].rating)
+            : null,
+          bestRank: sortedByRanking[0]?.ranking ?? null
+        },
+        recentContests: ratingHistory.slice(0, 10),
+        ratingHistory: ratingHistory.map((c) => ({
+          name: c.name,
+          rating: c.rating,
+          date: c.date
+        }))
       },
-      stats: {
-        averageProblemsPerContest: parseFloat(avgProblemsPerContest.toString()),
-        bestRating: sortedByRating[0]
-          ? Math.round(sortedByRating[0].rating)
-          : null,
-        bestRank: sortedByRanking[0]?.ranking ?? null
-      },
-      recentContests: ratingHistory.slice(0, 10),
-      ratingHistory: ratingHistory.map((c) => ({
-        name: c.contestName,
-        rating: c.rating,
-        date: c.date
-      }))
-    });
+      200
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return c.json({ error: message }, 500);

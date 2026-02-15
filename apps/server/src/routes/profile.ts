@@ -1,7 +1,9 @@
-import { Hono } from 'hono';
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { fetchLeetcode } from '../lib/leetcode';
 import { USER_PROFILE_QUERY } from '../lib/queries';
 import { cache, CacheTTL, userCacheKey } from '../lib/cache';
+import { ErrorSchema, UsernameParamSchema } from '../schemas/common';
+import { ProfileResponseSchema } from '../schemas/profile';
 
 interface ProfileResponse {
   matchedUser: {
@@ -30,14 +32,55 @@ interface ProfileResponse {
   };
 }
 
-const profile = new Hono();
+const profile = new OpenAPIHono();
 
-/**
- * GET /:username
- * Get user's public profile information
- */
-profile.get('/:username', async (c) => {
-  const username = c.req.param('username');
+const route = createRoute({
+  method: 'get',
+  path: '/{username}',
+  tags: ['User'],
+  summary: 'Get user profile',
+  description: 'Get user public profile information',
+  request: {
+    params: UsernameParamSchema
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: ProfileResponseSchema
+        }
+      },
+      description: 'User profile details'
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Bad Request'
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'User not found'
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Server Error'
+    }
+  }
+});
+
+profile.openapi(route, async (c) => {
+  const { username } = c.req.valid('param');
 
   if (!username) {
     return c.json({ error: 'Username is required' }, 400);
@@ -48,7 +91,7 @@ profile.get('/:username', async (c) => {
   const cached = cache.get(cacheKey);
   if (cached) {
     c.res.headers.set('X-Cache', 'HIT');
-    return c.json(cached);
+    return c.json(cached as z.infer<typeof ProfileResponseSchema>, 200);
   }
 
   try {
@@ -100,7 +143,7 @@ profile.get('/:username', async (c) => {
     cache.set(cacheKey, result, CacheTTL.PROFILE);
     c.res.headers.set('X-Cache', 'MISS');
 
-    return c.json(result);
+    return c.json(result, 200);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return c.json({ error: message }, 500);

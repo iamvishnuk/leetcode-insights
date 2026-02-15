@@ -1,6 +1,8 @@
-import { Hono } from 'hono';
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { fetchLeetcode } from '../lib/leetcode';
 import { USER_BADGES_QUERY } from '../lib/queries';
+import { ErrorSchema, UsernameParamSchema } from '../schemas/common';
+import { BadgesResponseSchema } from '../schemas/badges';
 
 interface BadgesResponse {
   matchedUser: {
@@ -27,14 +29,55 @@ interface BadgesResponse {
   };
 }
 
-const badges = new Hono();
+const badges = new OpenAPIHono();
 
-/**
- * GET /:username
- * Get user's earned badges and upcoming badges
- */
-badges.get('/:username', async (c) => {
-  const username = c.req.param('username');
+const route = createRoute({
+  method: 'get',
+  path: '/{username}',
+  tags: ['Badges'],
+  summary: 'Get user badges',
+  description: "Get user's earned badges and upcoming badges",
+  request: {
+    params: UsernameParamSchema
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: BadgesResponseSchema
+        }
+      },
+      description: 'User badges'
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Bad Request'
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'User not found'
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Server Error'
+    }
+  }
+});
+
+badges.openapi(route, async (c) => {
+  const { username } = c.req.valid('param');
 
   if (!username) {
     return c.json({ error: 'Username is required' }, 400);
@@ -81,13 +124,16 @@ badges.get('/:username', async (c) => {
       icon: badge.icon
     }));
 
-    return c.json({
-      username,
-      totalBadges: earnedBadges.length,
-      badges: earnedBadges,
-      upcomingBadges: upcoming,
-      upcomingCount: upcoming.length
-    });
+    return c.json(
+      {
+        username,
+        totalBadges: earnedBadges.length,
+        badges: earnedBadges,
+        upcomingBadges: upcoming,
+        upcomingCount: upcoming.length
+      },
+      200
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return c.json({ error: message }, 500);

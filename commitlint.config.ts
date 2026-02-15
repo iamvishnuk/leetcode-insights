@@ -17,7 +17,8 @@ const config: UserConfig = {
         'deps'
       ]
     ],
-    'scope-empty': [1, 'never']
+    'scope-empty': [1, 'never'],
+    'header-max-length': [2, 'always', 150]
   }
 };
 

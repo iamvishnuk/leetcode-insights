@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { OpenAPIHono } from '@hono/zod-openapi';
 import calenderRoutes from './calender';
 import profileRoutes from './profile';
 import statsRoutes from './stats';
@@ -10,7 +10,7 @@ import dailyRoutes from './daily';
 import healthRoutes from './health';
 import overviewRoutes from './overview';
 
-const router = new Hono();
+const router = new OpenAPIHono();
 
 // Health check routes
 router.route('/health', healthRoutes);

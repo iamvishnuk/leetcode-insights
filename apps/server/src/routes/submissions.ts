@@ -1,6 +1,11 @@
-import { Hono } from 'hono';
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { fetchLeetcode } from '../lib/leetcode';
 import { USER_RECENT_SUBMISSIONS_QUERY } from '../lib/queries';
+import { ErrorSchema, UsernameParamSchema } from '../schemas/common';
+import {
+  RecentSubmissionsResponseSchema,
+  LimitQuerySchema
+} from '../schemas/submissions';
 
 interface RecentSubmissionsResponse {
   recentAcSubmissionList: {
@@ -13,17 +18,57 @@ interface RecentSubmissionsResponse {
   }[];
 }
 
-const submissions = new Hono();
+const submissions = new OpenAPIHono();
 
-/**
- * GET /:username
- * Get user's recent accepted submissions
- * Query params:
- *   - limit: number of submissions to fetch (default: 20, max: 100)
- */
-submissions.get('/:username', async (c) => {
-  const username = c.req.param('username');
-  const limitParam = c.req.query('limit');
+const route = createRoute({
+  method: 'get',
+  path: '/{username}',
+  tags: ['Submissions'],
+  summary: 'Get recent submissions',
+  description: "Get user's recent accepted submissions",
+  request: {
+    params: UsernameParamSchema,
+    query: LimitQuerySchema
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: RecentSubmissionsResponseSchema
+        }
+      },
+      description: 'Recent submissions'
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Bad Request'
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'User not found'
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Server Error'
+    }
+  }
+});
+
+submissions.openapi(route, async (c) => {
+  const { username } = c.req.valid('param');
+  const { limit: limitParam } = c.req.valid('query');
 
   if (!username) {
     return c.json({ error: 'Username is required' }, 400);
@@ -78,13 +123,16 @@ submissions.get('/:username', async (c) => {
       {} as Record<string, number>
     );
 
-    return c.json({
-      username,
-      count: submissions.length,
-      submissions,
-      groupedByDate,
-      languageDistribution
-    });
+    return c.json(
+      {
+        username,
+        count: submissions.length,
+        submissions,
+        groupedByDate,
+        languageDistribution
+      },
+      200
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return c.json({ error: message }, 500);

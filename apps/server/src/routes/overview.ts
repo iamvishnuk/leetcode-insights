@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { fetchLeetcode } from '../lib/leetcode';
 import { cache, CacheTTL, userCacheKey } from '../lib/cache';
 import {
@@ -8,16 +8,59 @@ import {
   USER_LANGUAGE_STATS_QUERY,
   USER_CALENDAR_QUERY
 } from '../lib/queries';
+import { ErrorSchema, UsernameParamSchema } from '../schemas/common';
+import { OverviewResponseSchema } from '../schemas/overview';
 
-const overview = new Hono();
+const overview = new OpenAPIHono();
 
-/**
- * GET /:username
- * Get a comprehensive overview of user's LeetCode profile
- * Perfect for portfolio displays - all data in one request
- */
-overview.get('/:username', async (c) => {
-  const username = c.req.param('username');
+const route = createRoute({
+  method: 'get',
+  path: '/{username}',
+  tags: ['User'],
+  summary: 'Get user overview',
+  description:
+    "Get a comprehensive overview of user's LeetCode profile. Perfect for portfolio displays - all data in one request",
+  request: {
+    params: UsernameParamSchema
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: OverviewResponseSchema
+        }
+      },
+      description: 'User overview'
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Bad Request'
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'User not found'
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorSchema
+        }
+      },
+      description: 'Server Error'
+    }
+  }
+});
+
+overview.openapi(route, async (c) => {
+  const { username } = c.req.valid('param');
 
   if (!username) {
     return c.json({ error: 'Username is required' }, 400);
@@ -28,7 +71,7 @@ overview.get('/:username', async (c) => {
   const cached = cache.get(cacheKey);
   if (cached) {
     c.res.headers.set('X-Cache', 'HIT');
-    return c.json(cached);
+    return c.json(cached as z.infer<typeof OverviewResponseSchema>, 200);
   }
 
   try {
@@ -176,7 +219,7 @@ overview.get('/:username', async (c) => {
     cache.set(cacheKey, result, CacheTTL.PROFILE);
     c.res.headers.set('X-Cache', 'MISS');
 
-    return c.json(result);
+    return c.json(result, 200);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return c.json({ error: message }, 500);
