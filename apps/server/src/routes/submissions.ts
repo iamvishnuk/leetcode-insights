@@ -8,6 +8,7 @@ import {
 } from '../schemas/submissions';
 
 const count = 100;
+const test = 'Hello world';
 
 interface RecentSubmissionsResponse {
   recentAcSubmissionList: {
