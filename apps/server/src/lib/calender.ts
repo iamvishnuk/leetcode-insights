@@ -50,9 +50,13 @@ export const timestampToDateString = (timestamp: number): string => {
  * Get start of day timestamp for a given date
  */
 export const getStartOfDayTimestamp = (date: Date): number => {
-  const startOfDay = new Date(date);
-  startOfDay.setUTCHours(0, 0, 0, 0);
-  return Math.floor(startOfDay.getTime() / 1000);
+  const utc = Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate()
+  );
+
+  return Math.floor(utc / 1000);
 };
 
 /**
@@ -78,13 +82,14 @@ export const generateYearDates = (year: number): Date[] => {
 export const generateLastNDaysDates = (days: number): Date[] => {
   const dates: Date[] = [];
   const now = new Date();
-  const today = new Date(
-    Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
+
+  const todayUTC = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
   );
 
   for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(today);
-    date.setUTCDate(date.getUTCDate() - i);
+    const date = new Date(todayUTC);
+    date.setUTCDate(todayUTC.getUTCDate() - i);
     dates.push(date);
   }
 
