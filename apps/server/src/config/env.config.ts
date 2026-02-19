@@ -1,10 +1,8 @@
-/* eslint-disable turbo/no-undeclared-env-vars */
-import path from 'path';
 import dotenv from 'dotenv';
 
-const environment = process.env.NODE_ENV || 'development';
-const envFile = `.env.${environment}`;
-dotenv.config({ path: path.resolve(__dirname, '../../', envFile) });
+dotenv.config({
+  path: `.env.${process.env.NODE_ENV || 'development'}`
+});
 
 export const EnvConfig = {
   port: Number(process.env.PORT) || 3001,
