@@ -9,6 +9,16 @@ COPY packages ./packages
 RUN bun install --frozen-lockfile
 
 FROM deps AS builder
+
+ARG PORT
+ENV PORT=$PORT
+
+ARG API_PREFIX
+ENV API_PREFIX=$API_PREFIX
+
+ARG LEETCODE_BASE_URL
+ENV LEETCODE_BASE_URL=$LEETCODE_BASE_URL
+
 RUN bunx turbo run build --filter=@leetcode-insights/server
 
 

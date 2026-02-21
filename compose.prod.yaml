@@ -1,0 +1,28 @@
+services:
+  server:
+    image: vishnuk1609/leetcode-insights-server:latest
+    container_name: leetcode-insights-server
+    env_file:
+      - apps/server/.env
+    ports:
+      - '8002:8001'
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  web:
+    image: vishnuk1609/leetcode-insights-web:latest
+    container_name: leetcode-insights-web
+    env_file:
+      - apps/web/.env
+    ports:
+      - '3002:3000'
+    depends_on:
+      - server
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
