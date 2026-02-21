@@ -25,7 +25,7 @@ jobs:
           username: ${{ secrets.LIGHTSAIL_USERNAME }}
           key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
           source: 'compose.prod.yaml'
-          target: '~/leetcode-insights'
+          target: '/home/ubuntu/leetcode-insights'
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
