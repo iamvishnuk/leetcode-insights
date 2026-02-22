@@ -240,8 +240,6 @@ const ApiExplorer = () => {
     try {
       const res = await fetch(url);
       const data = await res.json();
-      console.log(data);
-
       setResponse({ status: res.status, ok: res.ok, url, data });
     } catch (err) {
       setResponse({ status: 'error', message: (err as Error).message });

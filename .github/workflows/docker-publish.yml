@@ -56,3 +56,9 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_SITE_URL=${{ secrets.NEXT_PUBLIC_SITE_URL }}
+            PORT=${{ secrets.PORT }}
+            API_PREFIX=${{ secrets.API_PREFIX }}
+            LEETCODE_BASE_URL=${{ secrets.LEETCODE_BASE_URL }}
