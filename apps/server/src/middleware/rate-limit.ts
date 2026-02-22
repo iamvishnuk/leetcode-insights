@@ -1,4 +1,4 @@
-import { Context } from 'hono';
+import type { Context } from 'hono';
 import { rateLimiter } from 'hono-rate-limiter';
 
 export const limiter = rateLimiter({
