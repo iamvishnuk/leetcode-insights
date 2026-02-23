@@ -23,6 +23,7 @@ import {
 import { cn } from '@leetcode-insights/ui/lib/utils';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { Loader2 } from 'lucide-react';
 
 const CodeBlock = dynamic(() => import('../code'), { ssr: false });
 
@@ -167,6 +168,8 @@ const ApiExplorer = () => {
     null
   );
 
+  const [isPending, setIsPending] = useState(false);
+
   const handleParamChange = (paramName: EndpointParamName, value: string) => {
     setParamValues((prev) => ({
       ...prev,
@@ -238,11 +241,14 @@ const ApiExplorer = () => {
     }`;
 
     try {
+      setIsPending(true);
       const res = await fetch(url);
       const data = await res.json();
       setResponse({ status: res.status, ok: res.ok, url, data });
     } catch (err) {
       setResponse({ status: 'error', message: (err as Error).message });
+    } finally {
+      setIsPending(false);
     }
   };
 
@@ -335,6 +341,7 @@ const ApiExplorer = () => {
               className='w-full bg-orange-500 text-white transition-colors duration-200 hover:cursor-pointer hover:bg-orange-500/90'
               onClick={handleMakeRequest}
             >
+              {isPending && <Loader2 className='animate-spin' />}
               Make Request
             </Button>
           </CardFooter>
