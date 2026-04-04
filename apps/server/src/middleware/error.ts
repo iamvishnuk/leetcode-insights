@@ -1,5 +1,6 @@
 import type { Context, Next } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { LeetcodeAPIError } from '../lib/leetcode.js';
 
 export const errorHandler = async (c: Context, next: Next) => {
   try {
@@ -18,18 +19,35 @@ export const errorHandler = async (c: Context, next: Next) => {
     }
 
     if (err instanceof Error) {
-      // Handle specific LeetCode API errors
+      // Handle our custom LeetcodeAPIError from lib/leetcode.ts
+      if (err instanceof LeetcodeAPIError) {
+        let status = err.status || 500;
+        let message = err.message;
+
+        // Map common GraphQL/LeetCode messages to human-readable ones
+        if (
+          message.includes('not found') ||
+          message.includes('does not exist')
+        ) {
+          status = 404;
+          message = 'User not found';
+        } else if (message.includes('rate limit')) {
+          status = 429;
+          message = 'Rate limit exceeded. Please try again later.';
+        } else if (message.includes('timed out')) {
+          status = 504;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return c.json({ error: message, status }, status as any);
+      }
+
+      // Handle generic fallback errors containing known strings
       if (
         err.message.includes('not found') ||
         err.message.includes('does not exist')
       ) {
-        return c.json(
-          {
-            error: 'User not found',
-            status: 404
-          },
-          404
-        );
+        return c.json({ error: 'User not found', status: 404 }, 404);
       }
 
       if (err.message.includes('rate limit')) {
@@ -44,7 +62,7 @@ export const errorHandler = async (c: Context, next: Next) => {
 
       return c.json(
         {
-          error: err.message,
+          error: err.message || 'Internal Server Error',
           status: 500
         },
         500
@@ -53,7 +71,7 @@ export const errorHandler = async (c: Context, next: Next) => {
 
     return c.json(
       {
-        error: 'Internal server error',
+        error: 'Unknown internal server error',
         status: 500
       },
       500

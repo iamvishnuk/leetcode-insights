@@ -27,7 +27,7 @@ jobs:
         run: bun install
 
       - name: Quality Check
-        run: bun run turbo run lint typecheck
+        run: bun run turbo run lint typecheck test
 
       - name: Build
         env:
